@@ -92,10 +92,11 @@ FROM cte
 GROUP BY publisher_name
 ORDER BY mae ASC;
 ```
-- The best performing instance of this model elicited the following peformance metrics:
+- Through trial and error, the above model performed best, eliciting the following peformance metrics:
     - Avg MAE of 0.97 and median of 0.75
     - Avg RMSE of 1.11 and median of 0.90
 
 ![image](https://github.com/a-memme/revenue_prediction_imputation/assets/79600550/ba3e1ae2-d8ec-4a5a-b3a6-7384b8e9a8eb)
 
-   
+#### Random Forest Regression - Train, Evaluate, Test
+- 
