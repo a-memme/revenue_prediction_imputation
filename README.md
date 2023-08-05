@@ -101,6 +101,8 @@ ORDER BY mae ASC;
 ![image](https://github.com/a-memme/revenue_prediction_imputation/assets/79600550/ba3e1ae2-d8ec-4a5a-b3a6-7384b8e9a8eb)
 
 ### Random Forest Regression - Train, Evaluate, Test
+
+#### Train & Evaluate
 - Utilizing the training data (See lines 103-141 in ...), hyperparameter tuning is applied and results are evaluated for best performing models based on MAE and MSE:
 
 ```
@@ -147,9 +149,19 @@ LEFT JOIN ML.TRIAL_INFO(MODEL `project.revenue_estimation.rf_tuning`) AS hype
 ON eval.trial_id = hype.trial_id
 ORDER BY mean_absolute_error ASC;
 ```
+
 - Results are as follows where trial number 44 elicits the best evaluation results (MAE):
+
 ![image](https://github.com/a-memme/revenue_prediction_imputation/assets/79600550/70a23c04-5338-4586-a9f0-69c3f834c70a)
 ![image](https://github.com/a-memme/revenue_prediction_imputation/assets/79600550/bdd024cf-99cb-4135-bdfc-a54b3f01ad87)
 
+#### Test 
+- Given the information above, 2 top performing models based on MAE at evaluation (trial 44 shown above) and MSE at evaluation (trial 34 not shown above) are tested on the unseen data (test data) eliciting the following results:
+    - Trial 44 (best performing***):
+       ![image](https://github.com/a-memme/revenue_prediction_imputation/assets/79600550/3864c92e-e1a6-4503-a6a9-3c44c4ec41dd)
+    - Trial 34
+      ![image](https://github.com/a-memme/revenue_prediction_imputation/assets/79600550/3aa99b74-7184-45a8-b512-d70879b27067)
+
+ 
 
 ## Discussion 
