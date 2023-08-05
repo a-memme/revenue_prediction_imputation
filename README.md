@@ -275,15 +275,20 @@ ORDER BY date DESC;
 ### Why use Imputation AND Random Forest Regression?
 - Given that TVV is an aggregated metric, we could simply just predict TVV and then refactor its equation and substitute the predicted values into the formula:
   - i.e Revenue = (predicted tvv value) / 10k * views
-- Problem here is a strong reliance on the ARIMA model to be VERY accurate - small swings in errors from the tvv timeseries prediction are magnified once aggregated.
+- Problem here is a strong reliance on the ARIMA model to be VERY accurate - small swings in errors from the tvv timeseries prediction are magnified once aggregated in the formula.
     - This option actually performs significantly WORSE than the imputation + rf option (we've tried it).
-    - The random forest model adds another layer
+    - The random forest model adds another layer that considers other strongly correlated metrics other than tvv - see point directly below.
 - Compounding error exposure
-    - typically a risk in imputation is the exposure of compounding errors from the imputation model (ARIMA model in this case) + the final model used to predict the response variable (rf model)
-    - HOWEVER, in our case, through extensive evaluation and testing, we found that the rf model capturing relationships in other highly correlated metrics (such as date or demographics - see Test section above) can actually make up for errors in imputation and still elicit good results in evaluation and testing on unseen data with the help of standardization (i.e l1 or lasso regression).
+    - typically a risk in imputation is the exposure of compounding errors from the imputation model (ARIMA model) + the final model used to predict the response variable (rf model).
+    - HOWEVER, in our case, through extensive evaluation and testing, we found that the rf model capturing relationships in other highly correlated metrics (such as date or demographics - see feature importance in the Test section above) can actually make up for errors in imputation and still elicit good results in evaluation and testing on unseen data with the help of standardization (i.e l1 or lasso regression).
+- Amount of data to impute
+    - As there are only 3 data points that need to be imputed, we follow the 5% rule (per dimension) by providing sufficient training and test data that also helps elicit teh best test results (recency is also important due to consisten algorithm changes on social media platforms).
 
 ### Why choose Random Forest over other model options?
 - Overall best performing over other model options 
 - In its essence, random forest models contain many benefits specific to this analysis such as:
     - naturally robust to overfitting due to its natural structure (combination of many weak predictors = one strong predictor)
-    - ability to capture many complex relationships in variables - especially appropriate when considering the imputation discussion above. 
+    - ability to capture many complex relationships in variables - especially appropriate when considering the imputation discussion above.
+ 
+## Conclusion 
+The analysis above shows a compounding solution to providing up-to-date revenue analytics, prepared to be loaded into a BI tool for visualization. Although the problem may seem fairly simple at first, the relationships of available data, resources available, and overall domain knowledge ultimately determine what approach to take. Here, we see that a compounding solution utilizing missing data imputation and random forest regression elicits more than satisfactory results, solving a potentially adverse business analytics issue.
