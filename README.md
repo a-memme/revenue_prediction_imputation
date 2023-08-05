@@ -17,7 +17,9 @@ In the specific case of this analysis, revenue data (and all associated revenue 
 -  Create a view utilizing the organic data + model results to integrate into reporting and provide up-to-date revenue.
 
 ## Results & Analysis 
-#### ARIMA Imputation - TVV 
+*See ... for full SQL code* 
+
+### ARIMA Imputation - TVV 
 - In this analysis, a created KPI is TVV (total view value) that is simply revenue / views *10k.
     - As an aggregated metric containing revenue in its calculation, this metric is also lagged by 3 days, however contains very important information on rates and ad spend otherwise not included in available real-time metrics.
     - Based on its profile (of being an aggregated metric) and its behaviour over time (analyzed in previous instances not included in this analysis), it sees generally steady trends and is a good contender for timeseries prediction.
@@ -98,5 +100,56 @@ ORDER BY mae ASC;
 
 ![image](https://github.com/a-memme/revenue_prediction_imputation/assets/79600550/ba3e1ae2-d8ec-4a5a-b3a6-7384b8e9a8eb)
 
-#### Random Forest Regression - Train, Evaluate, Test
-- 
+### Random Forest Regression - Train, Evaluate, Test
+- Utilizing the training data (See lines 103-141 in ...), hyperparameter tuning is applied and results are evaluated for best performing models based on MAE and MSE:
+
+```
+--RANDOM FOREST REGRESSOR
+-- HYPERPARAMATER TUNING EVALUATION
+
+CREATE OR REPLACE MODEL `project.revenue_estimation.rf_tuning`
+OPTIONS(model_type='RANDOM_FOREST_REGRESSOR',
+       num_trials=50,
+       max_parallel_trials=5,
+       NUM_PARALLEL_TREE = hparam_candidates([50, 100, 500, 1000]),
+       l1_reg=hparam_candidates([0, 0.1, 0.5, 1, 2]),
+       l2_reg=hparam_candidates([0, 0.1, 0.5, 1, 2]),
+       max_tree_depth=hparam_candidates([5, 10, 15, 20]),
+       subsample=hparam_candidates([0.7, 0.8, 0.9]),
+       MIN_SPLIT_LOSS = hparam_candidates([0, 1, 2, 5]),
+       TREE_METHOD = 'HIST',
+       DATA_SPLIT_METHOD = 'RANDOM',
+       HPARAM_TUNING_OBJECTIVES = (['mean_absolute_error']),
+       INPUT_LABEL_COLS = ['post_snap_revenue_cad']) AS
+SELECT date,
+       publisher_name,
+       topsnap_views,
+       demo_age_25_to_34,
+       post_snap_revenue_cad,
+       total_time_viewed,
+       mature_audience,
+       tvv
+FROM `project.revenue_estimation.revenue_training_data`;
+
+
+-- EVALUATE MODEL -- first sorting for MAE, then considering MSE/R-squared measures
+SELECT hype.hyperparameters.l1_reg,
+       hype.hyperparameters.l2_reg,
+       hype.hyperparameters.max_tree_depth,
+       hype.hyperparameters.num_parallel_tree,
+       hype.hyperparameters.subsample,
+       hype.hyperparameters.min_split_loss,
+       eval.*,
+       SQRT(eval.mean_squared_error) rmse
+FROM
+  ML.EVALUATE(MODEL `project.revenue_estimation.rf_tuning`) AS eval
+LEFT JOIN ML.TRIAL_INFO(MODEL `project.revenue_estimation.rf_tuning`) AS hype
+ON eval.trial_id = hype.trial_id
+ORDER BY mean_absolute_error ASC;
+```
+- Results are as follows where trial number 44 elicits the best evaluation results (MAE):
+![image](https://github.com/a-memme/revenue_prediction_imputation/assets/79600550/70a23c04-5338-4586-a9f0-69c3f834c70a)
+![image](https://github.com/a-memme/revenue_prediction_imputation/assets/79600550/bdd024cf-99cb-4135-bdfc-a54b3f01ad87)
+
+
+## Discussion 
