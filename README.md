@@ -1,5 +1,5 @@
 # Predicting Revenue - Timeseries Imputation + Random Forest Regression
-*Utilizing imputation (via ARIMA timeseries modelling) in combination with random forest regression to predict daily revenue*
+*Utilizing imputation (via ARIMA timeseries modelling) in combination with random forest regression to predict daily revenue via BigQuery ML*
 
 ## Purpose 
 In social media advertising, revenue gained via ad servicing can often lag in its calibration, and thus, leave businesses reliant on said revenue streams potentially numerous days behind in tracking/understanding their own performance. In the extremely agile and fickle environment of online media, a couple of days could become detrimental when considering strategy and overall flexibility needed to stay relevant in the industry, working against a business' ability to gain or even maintain a competitive advantage in the market. 
