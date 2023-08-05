@@ -17,7 +17,7 @@ In the specific case of this analysis, revenue data (and all associated revenue 
 -  Create a view utilizing the organic data + model results to integrate into reporting and provide up-to-date revenue.
 
 ## Results & Analysis 
-*See [revenue_prediction_imputation.sqL](https://github.com/a-memme/revenue_prediction_imputation/blob/main/revenue_prediction_imputation.sql) for code details* 
+*See [revenue_prediction_imputation.sql](https://github.com/a-memme/revenue_prediction_imputation/blob/main/revenue_prediction_imputation.sql) for code details* 
 
 ### ARIMA Imputation - TVV 
 - In this analysis, a created KPI is TVV (total view value) that is simply revenue / views *10k.
@@ -103,7 +103,7 @@ ORDER BY mae ASC;
 ### Random Forest Regression - Train, Evaluate, Test
 
 #### Train & Evaluate
-- Utilizing the training data (See lines 103-141 in [revenue_prediction_imputation.sqL](https://github.com/a-memme/revenue_prediction_imputation/blob/main/revenue_prediction_imputation.sql)), hyperparameter tuning is applied and results are evaluated for best performing models based on MAE and MSE:
+- Utilizing the training data (See lines 103-141 in [revenue_prediction_imputation.sql](https://github.com/a-memme/revenue_prediction_imputation/blob/main/revenue_prediction_imputation.sql)), hyperparameter tuning is applied and results are evaluated for best performing models based on MAE and MSE:
 
 ```
 --RANDOM FOREST REGRESSOR
