@@ -22,7 +22,7 @@ In the specific case of this analysis, revenue data (and all associated revenue 
     - As an aggregated metric containing revenue in its calculation, this metric is also lagged by 3 days, however contains very important information on rates and ad spend otherwise not included in available real-time metrics.
     - Based on its profile (of being an aggregated metric) and its behaviour over time (analyzed in previous instances not included in this analysis), it sees generally steady trends and is a good contender for timeseries prediction.
 - Using the code below, an initial auto-ARIMA model is trained and then test on unseen data.
-    - Because the past 3 days contain no revenue data information, the initial model omits the past 6 days, where the predicted values of days 3-6 are measured against the actual values of days 3-6. See below:
+    - Because the past 3 days contain no revenue data information, the initial model omits the past 6 days, where the predicted values of days 3-6 are measured against the actual values of days 3-6. See code below:
 
 ```
 -- TEST ARIMA IMPUTATION (6 DAYS LAG for testing purposes)
@@ -92,4 +92,10 @@ FROM cte
 GROUP BY publisher_name
 ORDER BY mae ASC;
 ```
+- The best performing instance of this model elicited the following peformance metrics:
+    - Avg MAE of 0.97 and median of 0.75
+    - Avg RMSE of 1.11 and median of 0.90
 
+![image](https://github.com/a-memme/revenue_prediction_imputation/assets/79600550/ba3e1ae2-d8ec-4a5a-b3a6-7384b8e9a8eb)
+
+   
