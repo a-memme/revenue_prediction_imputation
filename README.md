@@ -282,7 +282,7 @@ ORDER BY date DESC;
     - typically a risk in imputation is the exposure of compounding errors from the imputation model (ARIMA model) + the final model used to predict the response variable (rf model).
     - HOWEVER, in our case, through extensive evaluation and testing, we found that the rf model capturing relationships in other highly correlated metrics (such as date or demographics - see feature importance in the Test section above) can actually make up for errors in imputation and still elicit good results in evaluation and testing on unseen data with the help of standardization (i.e l1 or lasso regression).
 - Amount of data to impute
-    - As there are only 3 data points that need to be imputed, we follow the 5% rule (per dimension) by providing sufficient training and test data that also helps elicit teh best test results (recency is also important due to consisten algorithm changes on social media platforms).
+    - As there are only 3 data points that need to be imputed, we follow the 5% rule (per dimension) by providing sufficient training and test data that also helps elicit the best test results (data recency is also important due to consistent algorithm changes on social media platforms - date representing the most important dimension via feature importance analysis reflects this as well).
 
 ### Why choose Random Forest over other model options?
 - Overall best performing over other model options 
