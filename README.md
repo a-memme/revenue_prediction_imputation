@@ -156,11 +156,23 @@ ORDER BY mean_absolute_error ASC;
 ![image](https://github.com/a-memme/revenue_prediction_imputation/assets/79600550/bdd024cf-99cb-4135-bdfc-a54b3f01ad87)
 
 #### Test 
-- Given the information above, 2 top performing models based on MAE at evaluation (trial 44 shown above) and MSE at evaluation (trial 34 not shown above) are tested on the unseen data (test data) eliciting the following results:
+- Given the information above, 2 top performing models based on MAE at evaluation (trial 44; shown above) and MSE at evaluation (trial 34; not shown above) are tested on the unseen data (test data) eliciting the following results:
     - Trial 44 (best performing***):
        ![image](https://github.com/a-memme/revenue_prediction_imputation/assets/79600550/3864c92e-e1a6-4503-a6a9-3c44c4ec41dd)
     - Trial 34
       ![image](https://github.com/a-memme/revenue_prediction_imputation/assets/79600550/3aa99b74-7184-45a8-b512-d70879b27067)
+- Feature importance is assessed in the best performing model, identifying factors in the model that account for the most variance in the response:
+![image](https://github.com/a-memme/revenue_prediction_imputation/assets/79600550/aba0cb4b-e802-4718-a970-4d8566448f44)
+
+### Integrate into Reporting 
+- Using the best performing regression model, organic performance data is combined with model results to create a view including:
+    - an "estimated_revenue_cad" column representing original + predicted revenue (revenue is updated as actuals are realized)
+    - a "predictived_tvv" column representing results of the ARIMA model for imputation
+    - all other relevant metrics to revenue (date, actual revenue, channel names, etc)
+ 
+## Discussion 
+### Random Forest Regression
+
 
  
 
