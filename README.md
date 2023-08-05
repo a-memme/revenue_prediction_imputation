@@ -169,11 +169,121 @@ ORDER BY mean_absolute_error ASC;
     - an "estimated_revenue_cad" column representing original + predicted revenue (revenue is updated as actuals are realized)
     - a "predictived_tvv" column representing results of the ARIMA model for imputation
     - all other relevant metrics to revenue (date, actual revenue, channel names, etc)
- 
+- See code below:
+```
+--INTEGRATE INTO REPORTING  -- CREATE VIEW
+CREATE OR REPLACE VIEW `Views.snap_revenue_est` AS
+-- REVENUE REPORTING VIEW 
+WITH cte AS (
+              SELECT
+              *
+              FROM
+              ML.PREDICT(MODEL `project.revenue_estimation.model_1`,
+                            (SELECT       actual.general_show_split, 
+                                          actual.net_proceeds_cad,
+                                          arima.date,
+                                          arima.publisher_name, 
+                                          actual.topsnap_views,
+                                          actual.demo_age_25_to_34,
+                                          actual.post_snap_revenue_cad, 
+                                          actual.total_time_viewed, 
+                                          actual.mature_audience,
+                                          arima.tvv, 
+                            FROM (SELECT  date(forecast_timestamp) AS date,
+                                          publisher_name, 
+                                          forecast_value AS tvv
+                                   FROM ML.FORECAST(MODEL`project.revenue_estimation.arima_impute_tvv`,
+                                                        STRUCT(3 AS horizon, 0.90 as confidence_level))
+                                   UNION ALL 
+                                   SELECT date, 
+                                          publisher_name, 
+                                          tvv
+                                   FROM  EXTERNAL_QUERY(
+                                                                                    "[sample_external_connection]",
+                                                                                    """
+                                                                                    SELECT date,
+                                                                                           publisher_name, 
+                                                                                           revenue_cad*0.5/topsnap_views*10000 AS tvv
+                                                                                    FROM snap_studio_metrics_daily
+                                                                                    WHERE TRUE 
+                                                                                    AND date < current_date - 3
+                                                                                    AND topsnap_views > 0
+                                                                                    ORDER BY date DESC;
+                                                                                    """
+                                                        )
+                                   ORDER BY publisher_name, date DESC
+                                   ) arima
+                            LEFT JOIN EXTERNAL_QUERY(
+                                                                                    "[sample_external_connection]",
+                                                                                    """
+                                                                                    SELECT s.date,
+                                                                                           s.publisher_name, 
+                                                                                           s.topsnap_views,
+                                                                                           demo_age_25_to_34,
+                                                                                           s.revenue_cad*0.5 AS post_snap_revenue_cad, 
+                                                                                           total_time_viewed,
+                                                                                           ROUND((demo_age_25_to_34 + demo_age_35_plus) / (demo_age_18_to_17 + demo_age_18_to_24 + demo_age_25_to_34 + demo_age_35_plus + demo_age_unknown)::NUMERIC, 4) AS mature_audience,    
+                                                                                           profile.general_show_split, 
+                                                                                           share.net_proceeds, 
+                                                                                           share.net_proceeds*ex.cad AS net_proceeds_cad                
+                                                                                    FROM snap_studio_metrics_daily s
+                                                                                    LEFT JOIN snap_publisher_profile AS profile 
+                                                                                    ON s.publisher_name = profile.publisher_name
+                                                                                    LEFT JOIN snapchat_daily_revenue_share_new AS share
+                                                                                    ON (s.date = share.date) AND (s.publisher_name = share.page_name)
+                                                                                    LEFT JOIN exchange_rates AS ex
+                                                                                    ON s.date = ex.date
+                                                                                    WHERE TRUE 
+                                                                                    AND s.topsnap_views > 0
+                                                                                    AND demo_age_25_to_34 > 0
+                                                                                    ORDER BY date DESC;
+                                                                                    """
+                                                        ) AS actual 
+                            ON (arima.date = actual.date) AND (arima.publisher_name = actual.publisher_name)
+                            ORDER BY date DESC
+                            )
+                        )
+              ORDER BY date DESC
+              ) 
+SELECT publisher_name, 
+       date, 
+       post_snap_revenue_cad AS actual_ps_revenue_cad,
+       predicted_post_snap_revenue_cad, 
+       CASE WHEN date >= current_date - 3
+              OR date >= current_date - 7 AND post_snap_revenue_cad <=0
+              OR post_snap_revenue_cad <=0 AND publisher_name NOT IN ([list_of_publishers])
+              THEN predicted_post_snap_revenue_cad
+            ELSE post_snap_revenue_cad
+         END AS estimated_revenue_cad,
+       net_proceeds_cad AS actual_np_cad, 
+       (predicted_post_snap_revenue_cad * general_show_split) AS predicted_np_cad, 
+       CASE WHEN date >= current_date - 3
+              OR date >= current_date - 7 AND post_snap_revenue_cad <=0
+              OR post_snap_revenue_cad <=0 AND publisher_name NOT IN ([list_of_publishers])
+              THEN (predicted_post_snap_revenue_cad * general_show_split)
+            ELSE net_proceeds_cad
+         END AS estimated_net_proceeds_cad,
+       topsnap_views, 
+       tvv AS predicted_tvv,
+       post_snap_revenue_cad/topsnap_views *10000 AS actual_tvv
+FROM cte
+WHERE TRUE 
+ORDER BY date DESC;
+```
+
 ## Discussion 
-### Random Forest Regression
+### Why use Imputation AND Random Forest Regression?
+- Given that TVV is an aggregated metric, we could simply just predict TVV and then refactor its equation and substitute the predicted values into the formula:
+  - i.e Revenue = (predicted tvv value) / 10k * views
+- Problem here is a strong reliance on the ARIMA model to be VERY accurate - small swings in errors from the tvv timeseries prediction are magnified once aggregated.
+    - This option actually performs significantly WORSE than the imputation + rf option (we've tried it).
+    - The random forest model adds another layer
+- Compounding error exposure
+    - typically a risk in imputation is the exposure of compounding errors from the imputation model (ARIMA model in this case) + the final model used to predict the response variable (rf model)
+    - HOWEVER, in our case, through extensive evaluation and testing, we found that the rf model capturing relationships in other highly correlated metrics (such as date or demographics - see Test section above) can actually make up for errors in imputation and still elicit good results in evaluation and testing on unseen data with the help of standardization (i.e l1 or lasso regression).
 
-
- 
-
-## Discussion 
+### Why choose Random Forest over other model options?
+- Overall best performing over other model options 
+- In its essence, random forest models contain many benefits specific to this analysis such as:
+    - naturally robust to overfitting due to its natural structure (combination of many weak predictors = one strong predictor)
+    - ability to capture many complex relationships in variables - especially appropriate when considering the imputation discussion above. 
