@@ -1,4 +1,4 @@
-# Predicting Revenue - Timeseries Imputation + Random Forest Regression
+# Revenue Forecasting - Timeseries Imputation + Random Forest Regression
 *Utilizing imputation (via ARIMA timeseries modelling) in combination with random forest regression to predict daily revenue via BigQuery ML*
 
 ## Purpose 
