@@ -94,7 +94,7 @@ FROM cte
 GROUP BY publisher_name
 ORDER BY mae ASC;
 ```
-- Through trial and error, the above model performed best, eliciting the following peformance metrics:
+- Through trial and error, the above model framework performs best, eliciting the following peformance metrics:
     - Avg MAE of 0.97 and median of 0.75
     - Avg RMSE of 1.11 and median of 0.90
 
